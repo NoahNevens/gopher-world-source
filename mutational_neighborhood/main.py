@@ -59,7 +59,7 @@ def randomMutation(encoding: Encoding, trap):
         index = random.randrange(0, len(trap), 1)
         while index in (encoding.food, encoding.floor, encoding.door):
             index = random.randrange(0, len(trap), 1)
-"""
+
 
         if mutationType == "del":
             trap = trap[:index] + trap[index+1:]
@@ -68,7 +68,7 @@ def randomMutation(encoding: Encoding, trap):
             trap = trap[:index] + [constants.CELL_ALPHABET[random.randrange(2, len(constants.CELL_ALPHABET), 1)]] + trap[index+1:]
 
     return np.array(trap)
-
+"""
 def main():
 
     trap = library.generateTrap()
