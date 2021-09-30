@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-from geneticAlgorithm.library import library
-from geneticAlgorithm.fitnessFunctions import fitnessFunctions
+import geneticAlgorithm.library as library
+import geneticAlgorithm.fitnessFunctions as fitnessFunctions
 from classes.Encoding import Encoding
 import random
 import geneticAlgorithm.constants as constants
+import numpy as np
 
 def generateMutated(encoder, trap, mutationFunction = library.mutationFunc, numMutants = 10):
     """Generates a list of possible mutated traps produced from mutating the same trap"""
@@ -54,11 +55,19 @@ def randomMutation(encoding: Encoding, trap):
     if mutationType == "sub":
         return library.mutationFunc(encoding, trap)
 
-    elif mutationType == "del":
+    else: 
         index = random.randrange(0, len(trap), 1)
         while index in (encoding.food, encoding.floor, encoding.door):
             index = random.randrange(0, len(trap), 1)
 """
+
+        if mutationType == "del":
+            trap = trap[:index] + trap[index+1:]
+
+        elif mutationType == "ins":
+            trap = trap[:index] + [constants.CELL_ALPHABET[random.randrange(2, len(constants.CELL_ALPHABET), 1)]] + trap[index+1:]
+
+    return np.array(trap)
 
 def main():
 
