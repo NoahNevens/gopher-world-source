@@ -5,7 +5,7 @@ from classes.Encoding import Encoding
 import random
 import geneticAlgorithm.constants as constants
 
-def generateMutated(encoder, trap, mutationFunction = library.mutationFuc, numMutants = 10):
+def generateMutated(encoder, trap, mutationFunction = library.mutationFunc, numMutants = 10):
     """Generates a list of possible mutated traps produced from mutating the same trap"""
     listMutants = [None for _ in range(numMutants)]
     for i in range(numMutants):
@@ -20,7 +20,7 @@ def computeChanges(encoder,trap,mutatedTraps):
 
     for i in range(len(mutatedTraps)):
         newCoherences[i], newLethalities[i] = getCoherenceAndLethality(encoder, mutatedTraps[i])
-    
+
     return newCoherences, newLethalities
 
 def controlledSubstitution(location, encoding: Encoding, trap):
@@ -29,7 +29,7 @@ def controlledSubstitution(location, encoding: Encoding, trap):
         raise ValueError("Location must be part of trap encoding")
     trap[location] = constants.CELL_ALPHABET[random.randrange(2, len(constants.CELL_ALPHABET), 1)]
 
-def getMutationalNeighborhoodStatistics(encoder, trap): 
+def getMutationalNeighborhoodStatistics(encoder, trap):
     mutatedTraps = generateMutated(encoder, trap)
     newCoherences, newLethalities = computeChanges(encoder, trap,mutatedTraps)
     return mutatedTraps,newCoherences,newLethalities
@@ -37,19 +37,20 @@ def getMutationalNeighborhoodStatistics(encoder, trap):
 def getCoherenceAndLethality(encoder, trap):
     """Returns both the coherence and lethality of a trap"""
     encodedTrap = Encoding.encode(trap)
-    coherence = fitnessFunctions.getCoherence(encodedTrap,encoder)   
+    coherence = fitnessFunctions.getCoherence(encodedTrap,encoder)
     lethality = fitnessFunctions.getLethalty(encodedTrap,encoder)
     return coherence,lethality
 
+"""
 def randomMutation(encoding: Encoding, trap):
-    """Performs a mutation that is one of: substitution, deletion, insertion"""
+    '''Performs a mutation that is one of: substitution, deletion, insertion'''
     mutationType = "sub"
     rand1 = random.randrange(0, 1) * 3
     if rand1 > 1:
         mutationType = "del"
     elif rand1 > 2:
         mutationType = "ins"
-    
+
     if mutationType == "sub":
         return library.mutationFunc(encoding, trap)
 
@@ -57,16 +58,14 @@ def randomMutation(encoding: Encoding, trap):
         index = random.randrange(0, len(trap), 1)
         while index in (encoding.food, encoding.floor, encoding.door):
             index = random.randrange(0, len(trap), 1)
+"""
 
 def main():
+
     trap = library.generateTrap()
     encoder = Encoding()
-    coherence,lethality = getCoherenceAndLethality(encoder, trap)
-    print(getMutationalNeighborhoodStatistics(encoder, trap))
-    
+    mutants = generateMutated(encoder, trap, library.mutationFunc, 10)
+
 
 if __name__ == "__main__":
     main()
-    
-
-
