@@ -2,6 +2,8 @@
 import geneticAlgorithm.library as library
 import geneticAlgorithm.fitnessFunctions as fitnessFunctions
 from classes.Encoding import Encoding
+from classes.Trap import sampleRandomBoards
+from classes.Trap import Trap
 import random
 import geneticAlgorithm.constants as constants
 import numpy as np
@@ -10,7 +12,8 @@ def generateMutated(encoder, trap, mutationFunction = library.mutationFunc, numM
     """Generates a list of possible mutated traps produced from mutating the same trap"""
     listMutants = [None for _ in range(numMutants)]
     for i in range(numMutants):
-        listMutants[i] = mutationFunction(encoder, trap)
+        trapArr = encoder.encode(trap)
+        listMutants[i] = mutationFunction(encoder, trapArr)
     return listMutants
 
 
@@ -37,7 +40,7 @@ def getMutationalNeighborhoodStatistics(encoder, trap):
 
 def getCoherenceAndLethality(encoder, trap):
     """Returns both the coherence and lethality of a trap"""
-    encodedTrap = Encoding.encode(trap)
+    encodedTrap = Encoding.encode(trap.randomBoard())
     coherence = fitnessFunctions.getCoherence(encodedTrap,encoder)
     lethality = fitnessFunctions.getLethalty(encodedTrap,encoder)
     return coherence,lethality
@@ -71,9 +74,11 @@ def randomMutation(encoding: Encoding, trap):
 """
 def main():
 
-    trap = library.generateTrap()
+    #trap = library.generateTrap()
+    trap = Trap(3,4,True)
     encoder = Encoding()
-    mutants = generateMutated(encoder, trap, library.mutationFunc, 10)
+    #mutants = generateMutated(encoder, trap, library.mutationFunc, 10)
+    print(getMutationalNeighborhoodStatistics(encoder, trap))
 
 
 if __name__ == "__main__":
