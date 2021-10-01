@@ -4,6 +4,7 @@ import geneticAlgorithm.fitnessFunctions as fitnessFunctions
 from classes.Encoding import Encoding
 from classes.Trap import sampleRandomBoards
 from classes.Trap import Trap
+from classes.Board import Board 
 import random
 import geneticAlgorithm.constants as constants
 import numpy as np
@@ -12,7 +13,7 @@ def generateMutated(encoder, trap, mutationFunction = library.mutationFunc, numM
     """Generates a list of possible mutated traps produced from mutating the same trap"""
     listMutants = [None for _ in range(numMutants)]
     for i in range(numMutants):
-        trapArr = encoder.encode(trap)
+        trapArr = encoder.encode(trap.board)
         listMutants[i] = mutationFunction(encoder, trapArr)
     return listMutants
 
@@ -40,7 +41,8 @@ def getMutationalNeighborhoodStatistics(encoder, trap):
 
 def getCoherenceAndLethality(encoder, trap):
     """Returns both the coherence and lethality of a trap"""
-    encodedTrap = Encoding.encode(trap.randomBoard())
+    board = Board(3,4) #Will have to change this to connect to trap 
+    encodedTrap = Encoding.encode(board)
     coherence = fitnessFunctions.getCoherence(encodedTrap,encoder)
     lethality = fitnessFunctions.getLethalty(encodedTrap,encoder)
     return coherence,lethality
