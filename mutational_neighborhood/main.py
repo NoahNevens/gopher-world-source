@@ -115,7 +115,7 @@ def randomMutation(encoding: Encoding, trap):
 
 
 """Copied from library.generate trap. Instead of a 3 by 4, trap trying to make a 3 by 3 trap"""
-def generateTrap(encoder: Encoding = Encoding()):
+def generateSmallTrap(encoder: Encoding = Encoding()):
     member = []
     for i in range(9):
         cellCode = random.randrange(2, len(constants.CELL_ALPHABET), 1)
@@ -137,13 +137,18 @@ def main():
 
     encoder = Encoding() 
     trap = library.generateTrap()
-    #getCoherenceAndLethality
+    #trap = generateSmallTrap()
+    #getCoherenceAsndLethality
     #print(trap)
     #ogCoherence, ogLethality = getCoherenceAndLethality(encoder, trap)
     #mutants = generateMutated(encoder, trap, library.mutationFunc)
     #newCoherences, newLethalities = computeChanges(encoder, mutants)
     #scatterplot(ogCoherence, ogLethality,newCoherences, newLethalities)
-    print(controlledSubstitution(3, encoder, trap, 3))
+
+    ogCoherence, ogLethality = getCoherenceAndLethality(encoder, trap)
+    mutants = controlledSubstitution(3, encoder, trap, 500)
+    newCoherences, newLethalities = computeChanges(encoder, mutants)
+    scatterplot(ogCoherence, ogLethality,newCoherences, newLethalities)
 
 
 
