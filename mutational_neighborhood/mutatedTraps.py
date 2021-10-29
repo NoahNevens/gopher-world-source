@@ -24,7 +24,6 @@ def generateMutated(encoder, trap, mutationFunction = library.mutationFunc, numM
     
     return listMutants
 
-
 def computeChanges(encoder,mutatedTraps):
     """Compares the coherence and lethality of the mutated traps to the original trap"""
     newCoherences = [0 for _ in range(len(mutatedTraps))]
@@ -76,6 +75,25 @@ def getCoherenceAndLethality(encoder, trap):
     coherence = fitnessFunctions.getCoherence(trap,encoder)
     lethality = fitnessFunctions.getLethality(trap,encoder)
     return coherence,lethality
+
+def getRobustness(encoder, trap):
+    """Returns the robustness of a trap"""
+    ogCoherence = fitnessFunctions.getCoherence(trap, encoder)
+    ogLethality = fitnessFunctions.getLethality(trap, encoder)
+    mutatedTraps = generateMutated(encoder, trap)
+    newCoherences, newLethalities = computeChanges(encoder, trap, mutatedTraps)
+    totalCoherenceChange = 0
+    totalLethalityChange = 0
+
+    for i in range(len(newCoherences)):
+        totalCoherenceChange += abs(ogCoherence - newCoherences[i])
+        totalLethalityChange += abs(ogLethality - newLethalities[i])
+    
+    avgCohChange = totalCoherenceChange / len(newCoherences)
+    avgLetChange = totalLethalityChange / len(newLethalities)
+
+    return (1 - avgCohChange), (1 - avgLetChange)
+
 
 def convertCohLetArrToStat(lethalityArr, coherenceArr):
     arrTuples = []
@@ -142,19 +160,20 @@ def randomMutation(encoding: Encoding, trap):
     return np.array(trap)
 """
 
-def getCoherantTraps(encoder):
+def getCoherentTraps(encoder):
     while True:
         trap = library.generateTrap()
-        coherance, lethality = getCoherenceAndLethality(encoder, trap)
-        if(coherance > 0):
-            print(coherance)
+        coherence, lethality = getCoherenceAndLethality(encoder, trap)
+        if(coherence > 0):
+            print(coherence)
             return trap
         
 def getMultiMutatedTraps(encoder, numMutants):
-    trap = getCoherantTraps(encoder)
+    trap = getCoherentTraps(encoder)
     coherences, lethalities = [], []
     levels = []
     traps = [trap]
+    newTraps = []
     i = 0
     for  trap in traps:
         coh, let = getCoherenceAndLethality(encoder, trap)
@@ -169,6 +188,41 @@ def getMultiMutatedTraps(encoder, numMutants):
     
     return coherences, lethalities,levels
 
+def getMultiMutatedDict(encoder, numMutants, levels):
+    trap = getCoherentTraps(encoder)
+
+    
+    dictt = recurseMultiDict(trap, numMutants, levels, {}, encoder)
+    return dictt
+
+def recurseMultiDict(trap, numMutants, levels, dictM, encoder):
+    if(levels == 0):
+        return {}
+    coh, let = getCoherenceAndLethality(encoder, trap)
+    mutants = generateMutated(encoder, trap, library.mutationFunc, numMutants=numMutants)
+
+    m = []
+    l = {}
+    i = 0
+    for mutant in mutants:
+        mutantMutants = {}
+        if(levels != 1):
+            mutantMutants = recurseMultiDict(mutant, numMutants, levels-1, {}, encoder)
+        coh1, let1 = getCoherenceAndLethality(encoder, mutant)
+        l[(coh1,let1)] = mutantMutants
+        m += [(coh1, let1)]
+    
+    
+    dictM[(coh, let)] = l
+    if(levels == 1):
+        dictM[coh, let] = m
+    return dictM
+    
+    
+
+
+
+
 def plotMultiMutatedTraps(coherences, lethalities,levels):
     fig = plt.figure()
     ax = plt.axes(projection='3d')
@@ -179,47 +233,76 @@ def plotMultiMutatedTraps(coherences, lethalities,levels):
     ax.set_zlabel("level")
     plt.show()
 
+def plotMultiMutatedDict(X, Y,Values):
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+
+    ax.scatter(X, Y, Values)
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Coherance or Lethality")
+    plt.show()
+
 sampleDictionary = {(0,0):{(2,2):{(2,3), (2,4)}, (1,1): {(0,3), (0,4)}}}
 
-def getPolar(dictionary, levels, branches):
+
+SCALE = 5
+
+
+def getPolar(dictionary, levels, index):
     items = dictionary.items()
     newDict = {}
-    newDict[(0,0)] = recursePolar(dictionary, levels, branches, 0, 2*math.pi)
-    return newDict
+    X,Y,V = recursePolar(dictionary, levels, 0, 2*math.pi, index, levels)
 
-def recursePolar (dict, levels, branches, startAngle, endAngle):
-    if(levels == 0):
-         return {}
+    rootItem = dictionary.keys()
+    val = 0
+    for item in rootItem:
+        val = item[index]
+    X += [0]
+    Y += [0]
+    V += [val]
+
+    return X,Y,V
     
+
+def recursePolar (dict1, levels, startAngle, endAngle, index, totalLevels):
+    if(levels == 0):
+         return [],[],[]
+    
+    branches = len(dict1.keys())
     offset = (endAngle - startAngle)/branches
     i = 0
     newDict = {}
-    for item in dict.keys():
-        childDict = recursePolar(dict[item], levels-1, branches, i*offset, i+1*offset)
-        newy = levels * math.sin(i* 0.5*offset)
-        newx = levels * math.cos(i *0.5 *offset)
-        newTuple = (newx, newy)
-        newDict[newTuple] = childDict
+    newList = []
+    XList = []
+    YList = []
+    Value = []
+    for item in dict1.keys():
+        X, Y, V = recursePolar(dict1[item], levels-1,  i*offset, i+1*offset, index, totalLevels)
+        newy = SCALE*(totalLevels-levels+1) * math.sin(i* 0.5*offset)
+        newx = SCALE*(totalLevels-levels+1) * math.cos(i *0.5 *offset)
+        XList += [newx]
+        YList += [newy]
+        Value += [item[index]]
+        if(levels > 1):
+            XList += X
+            YList += Y
+            Value += V
         i += 1
     
-    return newDict
+
+    return XList, YList, Value
 
 
 
         
 
     
-def main():
-    
-    encoder = Encoding() 
-    #trap = library.generateTrap()
-    trap = getCoherantTraps(encoder)
-    plotMultiMutatedTraps(*getMultiMutatedTraps(encoder, 5))
 
 def getSingleMutation():
     encoder = Encoding() 
     #trap = library.generateTrap()
-    trap = getCoherantTraps(encoder)
+    trap = getCoherentTraps(encoder)
     
     #trap = generateSmallTrap()
     #getCoherenceAsndLethality
@@ -236,6 +319,21 @@ def getSingleMutation():
     newCoherences, newLethalities = computeChanges(encoder, mutants)
     scatterplot(ogCoherence, ogLethality,newCoherences, newLethalities)
 
+
+def main():
+
+    #getSingleMutation()
+    
+    encoder = Encoding() 
+    #trap = library.generateTrap()
+    trap = getCoherentTraps(encoder)
+    multimutatedtraps = getMultiMutatedDict(encoder, 3, 4)
+    X,Y,V = getPolar(multimutatedtraps,4, 0)
+    scatterplot(0, 0,X, Y)
+    plotMultiMutatedDict(X,Y,V)
+
+
+    #plotMultiMutatedTraps(*getMultiMutatedTraps(encoder, 5))
 
 
 if __name__ == "__main__":
