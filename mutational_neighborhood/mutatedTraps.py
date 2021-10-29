@@ -243,6 +243,8 @@ def plotMultiMutatedDict(X, Y,Values):
     ax.set_zlabel("Coherance or Lethality")
     plt.show()
 
+    plt.savefig('./plot2.png')
+
 sampleDictionary = {(0,0):{(2,2):{(2,3), (2,4)}, (1,1): {(0,3), (0,4)}}}
 
 
@@ -320,17 +322,16 @@ def getSingleMutation():
     scatterplot(ogCoherence, ogLethality,newCoherences, newLethalities)
 
 
-def main():
-
-    #getSingleMutation()
-    
+def main():    
     encoder = Encoding() 
     #trap = library.generateTrap()
     trap = getCoherentTraps(encoder)
     multimutatedtraps = getMultiMutatedDict(encoder, 3, 4)
     X,Y,V = getPolar(multimutatedtraps,4, 0)
-    scatterplot(0, 0,X, Y)
+    #scatterplot(0, 0,X, Y)
     plotMultiMutatedDict(X,Y,V)
+
+    getSingleMutation()
 
 
     #plotMultiMutatedTraps(*getMultiMutatedTraps(encoder, 5))
