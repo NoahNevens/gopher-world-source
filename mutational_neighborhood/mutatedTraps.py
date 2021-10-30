@@ -167,35 +167,85 @@ def getCoherentTraps(encoder):
         if(coherence > 0):
             print(coherence)
             return trap
-        
-def getMultiMutatedTraps(encoder, numMutants):
+
+
+def recurseMultiMutatedTraps(ogTrap, encoder, numMutants, level):
+    coh, let = getCoherenceAndLethality(encoder, ogTrap)
+    children = []
+    if level > 1:
+        mutants = generateMutated(encoder, ogTrap, library.mutationFunc, numMutants=numMutants)
+        for mutant in mutants:
+            children.append(recurseMultiMutatedTraps(mutant,encoder,numMutants,level-1))
+    return {'coh':coh,'let':let,'level':level,'children':children}
+
+def driveMultiMutatedTraps(encoder,numMutants,numLevel):
     trap = getCoherentTraps(encoder)
-    coherences, lethalities = [], []
-    levels = []
-    traps = [trap]
-    newTraps = []
+    data = recurseMultiMutatedTraps(trap, encoder, numMutants, numLevel)
+    return data
+'''
+trap1 -> (coh, let, level)=levelData
+
+(levelData, [(levelData,)] )
+    
+'''
+
+def getPolarTraps(obj, levels, attributeName):
+    #items = dictionary.items()
+    #newDict = {}
+    X,Y,V = recursePolarTraps(obj, levels, 0, 2*math.pi, attributeName, levels)
+
+    val = obj[attributeName]
+    X += [0]
+    Y += [0]
+    V += [val]
+
+    return X,Y,V
+    
+
+SCALE = 5
+def recursePolarTraps (obj, levels, startAngle, endAngle, attributeName, totalLevels):
+    """if(levels == totalLevels):
+        x = SCALE * math.cos((endAngle-startAngle)/2) *(totalLevels-levels+1) 
+        y = SCALE * math.sin((endAngle-startAngle)/2) *(totalLevels-levels+1) 
+        return [],[],[]"""
+    
+    if(levels==1):
+        return [],[],[]
+    
+    branches = len(obj['children'])
+    print(branches)
+    offset = (endAngle - startAngle)/branches
     i = 0
-    for  trap in traps:
-        coh, let = getCoherenceAndLethality(encoder, trap)
-        coherences.append(coh)
-        lethalities.append(let)
-        levels.append(i)
-        mutants = generateMutated(encoder, trap, library.mutationFunc, numMutants=5)
-        newTraps.extend(mutants)
+    newDict = {}
+    newList = []
+    XList = []
+    YList = []
+    Value = []
+    #print(obj['children'])
+    for child in obj['children']:
+        #print(child)
+        X, Y, V = recursePolarTraps(child, levels-1,  i*offset, i+1*offset, attributeName, totalLevels)
+        newy = SCALE*(totalLevels-levels+1) * math.sin(i*offset)
+        newx = SCALE*(totalLevels-levels+1) * math.cos(i *offset)
+        XList += [newx]
+        YList += [newy]
+        Value += [child[attributeName]]
+        if(levels > 1):
+            XList += X
+            YList += Y
+            Value += V
         i += 1
-        traps = newTraps
+    return XList,YList,Value
 
     
-    return coherences, lethalities,levels
 
 def getMultiMutatedDict(encoder, numMutants, levels):
     trap = getCoherentTraps(encoder)
 
-    
-    dictt = recurseMultiDict(trap, numMutants, levels, {}, encoder)
+    dictt = recurseMultiDict(trap, numMutants, levels, {}, encoder, 0)
     return dictt
 
-def recurseMultiDict(trap, numMutants, levels, dictM, encoder):
+def recurseMultiDict(trap, numMutants, levels, dictM, encoder, index):
     if(levels == 0):
         return {}
     coh, let = getCoherenceAndLethality(encoder, trap)
@@ -203,19 +253,18 @@ def recurseMultiDict(trap, numMutants, levels, dictM, encoder):
 
     m = []
     l = {}
-    i = 0
-    for mutant in mutants:
+    for i, mutant in enumerate(mutants):
         mutantMutants = {}
         if(levels != 1):
-            mutantMutants = recurseMultiDict(mutant, numMutants, levels-1, {}, encoder)
+            mutantMutants = recurseMultiDict(mutant, numMutants, levels-1, {}, encoder, i)
         coh1, let1 = getCoherenceAndLethality(encoder, mutant)
-        l[(coh1,let1)] = mutantMutants
-        m += [(coh1, let1)]
+        l[(coh1,let1,i)] = mutantMutants
+        m += [(coh1, let1,i)]
     
     
-    dictM[(coh, let)] = l
+    dictM[(coh, let, index)] = l
     if(levels == 1):
-        dictM[coh, let] = m
+        dictM[(coh, let,index)] = m
     return dictM
     
     
@@ -233,67 +282,38 @@ def plotMultiMutatedTraps(coherences, lethalities,levels):
     ax.set_zlabel("level")
     plt.show()
 
+def plotMultiMutatedTraps2(X, Y,Values):
+    
+    plt.scatter(X, Y, c= Values)
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    #plt.xlim(-6,6)
+    #plt.ylim(-6,6)
+    plt.gray()
+    plt.show()
+    plt.savefig('./plot1.png')
+
 def plotMultiMutatedDict(X, Y,Values):
+
+    print(Values, "values")
     fig = plt.figure()
     ax = plt.axes(projection='3d')
 
+    
     ax.scatter(X, Y, Values)
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
+    #ax.scatter(X,Y)
     ax.set_zlabel("Coherance or Lethality")
     plt.show()
 
+    
+
     plt.savefig('./plot2.png')
 
-sampleDictionary = {(0,0):{(2,2):{(2,3), (2,4)}, (1,1): {(0,3), (0,4)}}}
 
 
-SCALE = 5
 
-
-def getPolar(dictionary, levels, index):
-    items = dictionary.items()
-    newDict = {}
-    X,Y,V = recursePolar(dictionary, levels, 0, 2*math.pi, index, levels)
-
-    rootItem = dictionary.keys()
-    val = 0
-    for item in rootItem:
-        val = item[index]
-    X += [0]
-    Y += [0]
-    V += [val]
-
-    return X,Y,V
-    
-
-def recursePolar (dict1, levels, startAngle, endAngle, index, totalLevels):
-    if(levels == 0):
-         return [],[],[]
-    
-    branches = len(dict1.keys())
-    offset = (endAngle - startAngle)/branches
-    i = 0
-    newDict = {}
-    newList = []
-    XList = []
-    YList = []
-    Value = []
-    for item in dict1.keys():
-        X, Y, V = recursePolar(dict1[item], levels-1,  i*offset, i+1*offset, index, totalLevels)
-        newy = SCALE*(totalLevels-levels+1) * math.sin(i* 0.5*offset)
-        newx = SCALE*(totalLevels-levels+1) * math.cos(i *0.5 *offset)
-        XList += [newx]
-        YList += [newy]
-        Value += [item[index]]
-        if(levels > 1):
-            XList += X
-            YList += Y
-            Value += V
-        i += 1
-    
-
-    return XList, YList, Value
 
 
 
@@ -321,17 +341,30 @@ def getSingleMutation():
     newCoherences, newLethalities = computeChanges(encoder, mutants)
     scatterplot(ogCoherence, ogLethality,newCoherences, newLethalities)
 
-
+sampleDictionary = {}
+sampleDictionary[(0,0)] = [(0,1), (0,2), (0,3), (0,4)]
+subdict1 = {'coh':1,'let':1,'level':1,'children': []}
+subdict2 = {'coh':1,'let':1,'level':1,'children': []}
+subdict3 = {'coh':1,'let':1,'level':1,'children': []}
+sampleDictionary = {'coh':1,'let':2,'level':2,'children':[subdict1, subdict2,subdict3]}
 def main():    
     encoder = Encoding() 
     #trap = library.generateTrap()
-    trap = getCoherentTraps(encoder)
-    multimutatedtraps = getMultiMutatedDict(encoder, 3, 4)
-    X,Y,V = getPolar(multimutatedtraps,4, 0)
+    #trap = getCoherentTraps(encoder)
+    #multimutatedtraps = getMultiMutatedDict(encoder, 3, 4)
+    #X,Y,V = getPolar(multimutatedtraps,4, 0)
+    #X,Y,V = getPolar(sampleDictionary, 1,1)
     #scatterplot(0, 0,X, Y)
-    plotMultiMutatedDict(X,Y,V)
-
-    getSingleMutation()
+    
+    
+    print(sampleDictionary)
+    objectDictionary = driveMultiMutatedTraps(encoder,3,4)
+    X,Y,V = getPolarTraps(objectDictionary, 3, 'coh')
+    
+    
+    print("hello", X,Y,V)
+    plotMultiMutatedTraps2(X, Y,V)
+    
 
 
     #plotMultiMutatedTraps(*getMultiMutatedTraps(encoder, 5))
