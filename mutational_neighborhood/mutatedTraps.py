@@ -65,6 +65,24 @@ def controlledSubstitution2(location, encoding: Encoding, trap, subList):
 
     return listMutants
 
+def superControlledSubstitution(location, encoding: Encoding, trap, mutation):
+    """Perform a single mutation at a specific location where the replacement
+        cell code is specified"""
+
+    newTrap = copy.deepcopy(trap)
+    newTrap[location] = mutation
+
+    return newTrap
+
+def generateAllMutants(encoder, trap):
+    """Return all possible mutations on a trap"""
+    listMutants = []
+    for i in range(0, len(trap), 1):
+        for k in (2, len(constants.CELL_ALPHABET), 1):
+            listMutants.append(superControlledSubstitution(i, encoder, trap, constants.CELL_ALPHABET[k]))
+    
+    return listMutants
+
 def getMutationalNeighborhoodStatistics(encoder, trap):
     mutatedTraps = generateMutated(encoder, trap)
     newCoherences, newLethalities = computeChanges(encoder, trap,mutatedTraps)
