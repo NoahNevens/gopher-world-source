@@ -210,7 +210,7 @@ trap1 -> (coh, let, level)=levelData
 def getPolarTraps(obj, levels, attributeName):
     #items = dictionary.items()
     #newDict = {}
-    X,Y,V = recursePolarTraps(obj, levels, 0, 2*math.pi, attributeName, levels)
+    X,Y,V = recursePolarTraps(obj, levels, 0, 2*math.pi, attributeName, levels, 0, 0)
 
     val = obj[attributeName]
     X += [0]
@@ -221,7 +221,7 @@ def getPolarTraps(obj, levels, attributeName):
     
 
 SCALE = 5
-def recursePolarTraps (obj, levels, startAngle, endAngle, attributeName, totalLevels):
+def recursePolarTraps (obj, levels, startAngle, endAngle, attributeName, totalLevels, XPos, YPos):
     """if(levels == totalLevels):
         x = SCALE * math.cos((endAngle-startAngle)/2) *(totalLevels-levels+1) 
         y = SCALE * math.sin((endAngle-startAngle)/2) *(totalLevels-levels+1) 
@@ -232,7 +232,8 @@ def recursePolarTraps (obj, levels, startAngle, endAngle, attributeName, totalLe
     
     branches = len(obj['children'])
     print(branches)
-    offset = (endAngle - startAngle)/branches
+    offset = (endAngle - startAngle)/(branches)
+    print(offset)
     i = 0
     newDict = {}
     newList = []
@@ -240,11 +241,15 @@ def recursePolarTraps (obj, levels, startAngle, endAngle, attributeName, totalLe
     YList = []
     Value = []
     #print(obj['children'])
+
+    actualStart = startAngle - (offset * ((branches-1)/2))
+    #actualStart = startAngle
     for child in obj['children']:
         #print(child)
-        X, Y, V = recursePolarTraps(child, levels-1,  i*offset, i+1*offset, attributeName, totalLevels)
-        newy = SCALE*(totalLevels-levels+1) * math.sin(i*offset)
-        newx = SCALE*(totalLevels-levels+1) * math.cos(i *offset)
+        
+        newy = YPos + SCALE * math.sin(actualStart + i*offset)
+        newx = XPos + SCALE * math.cos(actualStart + i*offset )
+        X, Y, V = recursePolarTraps(child, levels-1,  actualStart + i*offset, actualStart+ (i+1)*offset, attributeName, totalLevels, newx,  newy)
         XList += [newx]
         YList += [newy]
         Value += [child[attributeName]]
@@ -290,23 +295,29 @@ def recurseMultiDict(trap, numMutants, levels, dictM, encoder, index):
 
 
 
-def plotMultiMutatedTraps(coherences, lethalities,levels):
+def plotMultiMutatedTraps(coherences, lethalities,levels, Name):
     fig = plt.figure()
     ax = plt.axes(projection='3d')
 
     ax.scatter(coherences, lethalities, levels)
-    ax.set_xlabel("coherence")
-    ax.set_ylabel("lethality")
-    ax.set_zlabel("level")
+    ax.set_xlabel("Mutational Plane")
+    ax.set_ylabel("Mutational Plane")
+    ax.set_zlabel(Name)
     plt.show()
+    plt.savefig('./plot2.png')
 
 def plotMultiMutatedTraps2(X, Y,Values):
     
-    plt.scatter(X, Y, c= Values)
+    # plt.scatter(X, Y, c= Values)
+    fig, ax = plt.subplots()
+    ax.scatter(X, Y)
     plt.xlabel("X")
     plt.ylabel("Y")
-    #plt.xlim(-6,6)
-    #plt.ylim(-6,6)
+    
+    # getting a square plot
+    x0,x1 = ax.get_xlim()
+    y0,y1 = ax.get_ylim()
+    ax.set_aspect(abs(x1-x0)/abs(y1-y0))
     plt.gray()
     plt.show()
     plt.savefig('./plot1.png')
@@ -375,13 +386,18 @@ def main():
     #scatterplot(0, 0,X, Y)
     
     
+    # Sample Dict 
     print(sampleDictionary)
     objectDictionary = driveMultiMutatedTraps(encoder,3,4)
-    X,Y,V = getPolarTraps(objectDictionary, 3, 'coh')
-    
-    
-    print("hello", X,Y,V)
+    X,Y,V = getPolarTraps(objectDictionary, 3, 'coh')   
     plotMultiMutatedTraps2(X, Y,V)
+
+    #trap = library.generateTrap()
+    objectDictionary = driveMultiMutatedTraps(encoder,4,4)
+    X,Y,V = getPolarTraps(objectDictionary, 4, 'coh')   
+    plotMultiMutatedTraps(X, Y,V, "Coherance")
+
+
     
 
 
