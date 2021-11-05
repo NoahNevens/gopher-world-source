@@ -308,7 +308,7 @@ def plotMultiMutatedTraps(coherences, lethalities,levels, Name):
 
 def plotMultiMutatedTraps2(X, Y,Values):
     
-    # plt.scatter(X, Y, c= Values)
+    plt.scatter(X, Y, c= Values)
     fig, ax = plt.subplots()
     ax.scatter(X, Y)
     plt.xlabel("X")
@@ -387,15 +387,23 @@ def main():
     
     
     # Sample Dict 
-    print(sampleDictionary)
+    """print(sampleDictionary)
     objectDictionary = driveMultiMutatedTraps(encoder,3,4)
     X,Y,V = getPolarTraps(objectDictionary, 3, 'coh')   
-    plotMultiMutatedTraps2(X, Y,V)
+    plotMultiMutatedTraps2(X, Y,V)"""
 
     #trap = library.generateTrap()
-    objectDictionary = driveMultiMutatedTraps(encoder,4,4)
-    X,Y,V = getPolarTraps(objectDictionary, 4, 'coh')   
+    numlevels = 4
+    nummutations = 5
+    objectDictionary = driveMultiMutatedTraps(encoder,numlevels,nummutations)
+    X,Y,V = getPolarTraps(objectDictionary, numlevels, 'coh')   
     plotMultiMutatedTraps(X, Y,V, "Coherance")
+    plotMultiMutatedTraps2(X, Y,V)
+
+    X,Y,V = getPolarTraps(objectDictionary, numlevels, 'let')   
+    plotMultiMutatedTraps(X, Y,V, "Lethality")
+    plotMultiMutatedTraps2(X, Y,V)
+
 
 
     
