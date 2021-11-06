@@ -27,7 +27,6 @@ def generateSmallTrap(encoder: Encoding = Encoding()):
 
 
 
-
 def main():
 
     encoder = Encoding() 

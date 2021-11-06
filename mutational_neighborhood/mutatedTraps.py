@@ -186,6 +186,34 @@ def getCoherentTraps(encoder):
             print(coherence)
             return trap
 
+def getCoherentTraps(encoder):
+    num = 1
+    best_coherence = 0
+    best_trap = None
+    while num < 10 ** 5:
+        trap = library.generateTrap()
+        num += 1
+        coherence, lethality = getCoherenceAndLethality(encoder, trap)
+        if coherence > best_coherence:
+            print(coherence)
+            best_coherence = coherence
+            best_trap = trap
+    print(best_coherence)
+    return best_trap
+
+def getLethalTraps(encoder):
+    num = 1
+    best_lethality = 0
+    best_trap = None
+    while num < 10**5:
+        trap = generateTrap()
+        coherence, lethality = getCoherenceAndLethality(encoder, trap)
+        if lethality > best_lethality:
+            best_lethality = lethality
+            best_trap = trap
+        num += 1
+    print(best_lethality)
+    return best_trap
 
 def recurseMultiMutatedTraps(ogTrap, encoder, numMutants, level):
     coh, let = getCoherenceAndLethality(encoder, ogTrap)
@@ -310,7 +338,7 @@ def plotMultiMutatedTraps2(X, Y,Values):
     
     plt.scatter(X, Y, c= Values)
     fig, ax = plt.subplots()
-    ax.scatter(X, Y)
+    # ax.scatter(X, Y)
     plt.xlabel("X")
     plt.ylabel("Y")
     
@@ -373,18 +401,12 @@ def getSingleMutation():
 sampleDictionary = {}
 sampleDictionary[(0,0)] = [(0,1), (0,2), (0,3), (0,4)]
 subdict1 = {'coh':1,'let':1,'level':1,'children': []}
-subdict2 = {'coh':1,'let':1,'level':1,'children': []}
+dict2 = {'coh':1,'let':1,'level':1,'children': []}
 subdict3 = {'coh':1,'let':1,'level':1,'children': []}
 sampleDictionary = {'coh':1,'let':2,'level':2,'children':[subdict1, subdict2,subdict3]}
-def main():    
-    encoder = Encoding() 
-    #trap = library.generateTrap()
-    #trap = getCoherentTraps(encoder)
-    #multimutatedtraps = getMultiMutatedDict(encoder, 3, 4)
-    #X,Y,V = getPolar(multimutatedtraps,4, 0)
-    #X,Y,V = getPolar(sampleDictionary, 1,1)
+
     #scatterplot(0, 0,X, Y)
-    
+    print(generateLethalTrap(encoder))
     
     # Sample Dict 
     """print(sampleDictionary)
@@ -393,7 +415,7 @@ def main():
     plotMultiMutatedTraps2(X, Y,V)"""
 
     #trap = library.generateTrap()
-    numlevels = 4
+    """ numlevels = 4
     nummutations = 5
     objectDictionary = driveMultiMutatedTraps(encoder,numlevels,nummutations)
     X,Y,V = getPolarTraps(objectDictionary, numlevels, 'coh')   
@@ -402,7 +424,7 @@ def main():
 
     X,Y,V = getPolarTraps(objectDictionary, numlevels, 'let')   
     plotMultiMutatedTraps(X, Y,V, "Lethality")
-    plotMultiMutatedTraps2(X, Y,V)
+    plotMultiMutatedTraps2(X, Y,V) """
 
 
 
