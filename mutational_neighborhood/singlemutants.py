@@ -70,15 +70,18 @@ def getCoherenceAndLethality(encoder, trap):
 def generateLethalTrap(encoder):
     best_lethality = 0
     best_trap = None
-    num = 1
-    while num < 10 ** 2:
+    num = 0
+
+    while num < 100:
         trap = library.generateTrap()
-        coherence, lethality = getCoherenceAndLethality(encoder, trap)
-        if lethality > best_lethality:
-            best_lethality = lethality
-            best_trap = trap
+        listMutants = generateAllMutantsAtCell(encoder, trap)
+        for mutant in listMutants:
+            coherence, lethality = getCoherenceAndLethality(encoder, mutant)
+            if lethality > best_lethality:
+                best_lethality = lethality
+                best_trap = mutant
         num += 1
-    print(best_lethality)
+
     return best_trap
 
 def plotSingleMutants(encoder, trap):
